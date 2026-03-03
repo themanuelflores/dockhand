@@ -4,7 +4,8 @@
     "date": "2026-03-02",
     "changes": [
       { "type": "fix", "text": "regression on Synology DSM" },
-      { "type": "fix", "text": "Fix ARM64 regression: Go collector crashing on Raspberry Pi and other ARM devices" }
+      { "type": "fix", "text": "Fix ARM64 regression: Go collector crashing on Raspberry Pi and other ARM devices" },
+      { "type": "fix", "text": "autoupdate hangs on \"waiting for Dockhand\"" }
     ],
     "imageTag": "fnsys/dockhand:v1.0.20"
   },
