@@ -1101,9 +1101,46 @@ async function executeLocalCompose(
 		await loginToRegistries(dockerHost, logPrefix, spawnEnv.DOCKER_API_VERSION);
 	}
 
+	// --- 1PASSWORD INJECTION START ---
+	let executable = args[0]; // defaults to 'docker'
+	let executableArgs = args.slice(1);
+
+	// Opt-in flag: Check if OP_INJECT is set in the stack's environment variables
+	if (spawnEnv['OP_INJECT'] === 'true') {
+		executable = 'op';
+		executableArgs = ['run', '--no-masking'];
+		
+		// Pass the same env files to `op run` so it can intercept and resolve op:// URIs
+		if (existsSync(defaultEnvPath)) {
+			executableArgs.push('--env-file', defaultEnvPath);
+		}
+		if (customEnvPath && resolve(customEnvPath) !== resolve(defaultEnvPath) && existsSync(customEnvPath)) {
+			executableArgs.push('--env-file', customEnvPath);
+		}
+		if (useOverrideFile && envVars && Object.keys(envVars).length > 0) {
+			const overrideEnvPath = join(stackDir, '.env.dockhand');
+			executableArgs.push('--env-file', overrideEnvPath);
+		}
+		
+		// Append the original docker compose command
+		executableArgs.push('--', 'docker', ...args.slice(1));
+		
+		// Inherit 1Password Connect credentials from Dockhand's global environment
+		// if they aren't explicitly defined in the stack's variables.
+		if (!spawnEnv.OP_CONNECT_HOST && process.env.OP_CONNECT_HOST) {
+			spawnEnv.OP_CONNECT_HOST = process.env.OP_CONNECT_HOST;
+		}
+		if (!spawnEnv.OP_CONNECT_TOKEN && process.env.OP_CONNECT_TOKEN) {
+			spawnEnv.OP_CONNECT_TOKEN = process.env.OP_CONNECT_TOKEN;
+		}
+		
+		console.log(`${logPrefix} 1Password Connect injection enabled for this stack`);
+	}
+	// --- 1PASSWORD INJECTION END ---
+
 	try {
-		console.log(`${logPrefix} Spawning docker compose process...`);
-		const proc = nodeSpawn(args[0], args.slice(1), {
+		console.log(`${logPrefix} Spawning ${executable} process...`);
+		const proc = nodeSpawn(executable, executableArgs, {
 			cwd: stackDir,
 			env: spawnEnv,
 			stdio: [useStdin ? 'pipe' : 'inherit', 'pipe', 'pipe']
