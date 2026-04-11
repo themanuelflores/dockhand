@@ -7,3 +7,4 @@ data/db
 data/.encryption_key
 .env
 .envrc
+package-lock.json
