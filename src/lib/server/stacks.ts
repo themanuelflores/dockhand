@@ -1121,6 +1121,11 @@ async function executeLocalCompose(
 			const overrideEnvPath = join(stackDir, '.env.dockhand');
 			executableArgs.push('--env-file', overrideEnvPath);
 		}
+
+		// Support passing an external env file specifically for 1Password
+		if (spawnEnv['OP_ENV_FILE']) {
+			executableArgs.push('--env-file', spawnEnv['OP_ENV_FILE']);
+		}
 		
 		// Append the original docker compose command
 		executableArgs.push('--', 'docker', ...args.slice(1));
@@ -2622,4 +2627,3 @@ export async function saveStackEnvVars(
 // They can be removed once all imports are updated
 
 export type { StackOperationResult as CreateStackResult };
-
