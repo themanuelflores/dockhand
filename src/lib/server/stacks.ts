@@ -1276,6 +1276,20 @@ async function executeComposeViaHawser(
 	// Merge envVars and secretVars for passing to Hawser
 	// Hawser will inject ALL these as shell environment variables (secrets are NOT written to .env)
 	const allEnvVars = { ...(envVars || {}), ...(secretVars || {}) };
+
+	// --- 1PASSWORD INJECTION START ---
+	if (allEnvVars['OP_INJECT'] === 'true') {
+		// Inherit 1Password Connect credentials from Dockhand's global environment
+		// if they aren't explicitly defined in the stack's variables.
+		if (!allEnvVars.OP_CONNECT_HOST && process.env.OP_CONNECT_HOST) {
+			allEnvVars.OP_CONNECT_HOST = process.env.OP_CONNECT_HOST;
+		}
+		if (!allEnvVars.OP_CONNECT_TOKEN && process.env.OP_CONNECT_TOKEN) {
+			allEnvVars.OP_CONNECT_TOKEN = process.env.OP_CONNECT_TOKEN;
+		}
+	}
+	// --- 1PASSWORD INJECTION END ---
+
 	const secretCount = secretVars ? Object.keys(secretVars).length : 0;
 
 	console.log(`${logPrefix} ----------------------------------------`);

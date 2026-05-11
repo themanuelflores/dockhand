@@ -416,6 +416,8 @@ export function httpsAgentRequest(
 			const isComposeOperation = path === '/_hawser/compose';
 			const composeTimeoutMs = parseInt(process.env.COMPOSE_TIMEOUT || '900') * 1000;
 			reqOptions.timeout = isComposeOperation ? composeTimeoutMs : 30000;
+		} else {
+			reqOptions.timeout = 0;
 		}
 
 		// Honor AbortSignal from caller (e.g., AbortSignal.timeout(5000) for ping)
